@@ -1,6 +1,6 @@
 易班自动打卡脚本（适用于湖南工程学院健康打卡系统）
 =========================
-<br><br><br>
+<br><br>
 
 一、基于ChromeDriver和selenium实现的自动打卡程序
 ------------------------
@@ -8,6 +8,9 @@
 >原理：通过模拟浏览器操作，登录打卡网站，并自动打卡<br>
 >优点：适应性强，此方法可识别验证码<br>
 >缺点：速度慢、受网络等因素影响较大<br>
+>运行环境（其他环境自测）：<br>
+>>系统：Linux CentOS7.7<br>
+>>Python版本:3.7.4<br><br>
 
 
 ```Python
@@ -171,6 +174,9 @@ if __name__ == '__main__':
 >原理：发送请求登录打卡网站，获取上次打卡信息，并通过请求提交实现打卡<br>
 >优点：速度快（保守估计比第一种方法快五十倍以上）<br>
 >缺点：局限性较大，如果网站有验证码，就会很麻烦<br>
+>运行环境（其他环境自测）：<br>
+>>系统：Linux CentOS7.7 / Win10<br>
+>>Python版本:3<br><br>
 
 ```python
 import requests
@@ -191,12 +197,12 @@ headers = {
 }
 
 if __name__ == '__main__':
-    db = pymysql.connect(host='39.105.85.123',port=3306,user='yiban_raichu_top',password='jbsm33S5Rzy6pHPN',db='yiban_raichu_top')
+    db = pymysql.connect(host='xxxxxxxxxxxxxx',port=3306,user='xxxxxxxxxxxxxx',password='xxxxxxxxxxxxxx',db='xxxxxxxxxxxxxx')
     cursor = db.cursor()
-    cursor.execute("use yiban_raichu_top;")
-    cursor.execute("select count(*) from user_information;")
+    cursor.execute("use xxxxxxxxxxxxxx;")
+    cursor.execute("select count(*) from xxxxxxxxxxxxxx;")
     num = cursor.fetchone()
-    cursor.execute("SELECT * FROM user_information")
+    cursor.execute("SELECT * FROM xxxxxxxxxxxxxx")
     user_data = cursor.fetchall()
     for i in range(0,num[0]):
         data = {
