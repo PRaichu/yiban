@@ -1,5 +1,14 @@
-易班自动打卡脚本（基于湖南工程学院）
+易班自动打卡脚本（适用于湖南工程学院健康打卡系统）
 =========================
+<br><br><br>
+
+一、基于ChromeDriver和selenium实现的自动打卡程序
+------------------------
+>语言：Python<br>
+>原理：通过模拟浏览器操作，登录打卡网站，并自动打卡<br>
+>优点：适应性强，此方法可识别验证码<br>
+>缺点：速度慢、受网络等因素影响较大<br>
+
 
 ```Python
 import os
@@ -14,7 +23,6 @@ from concurrent.futures import ThreadPoolExecutor
 import threading
 import pymysql
 
-#userfile = "xxxxxxxxxxxxxx/user.txt"    #原用户文件地址
 tempfile = "xxxxxxxxxxxxxx/usertemp.txt"    #副本文件地址
 logsfolder = "xxxxxxxxxxxxxx/logs"  #log文件夹地址，需要自己创建
 templogfile = logsfolder + "/templog.txt"   #不要改动
@@ -155,4 +163,86 @@ if __name__ == '__main__':
     #os.remove(tempfile)    #删除副本文件(可有可无，复制文件时会覆盖)
     os.rename(templogfile,logsfolder+"/"+str(time.strftime("%Y-%m-%d-%H-%M-%S",time.localtime()))+ ".txt")
 
+```
+<br><br>
+二、基于requests实现的自动打卡程序
+------------------------
+>语言：Python<br>
+>原理：发送请求登录打卡网站，获取上次打卡信息，并通过请求提交实现打卡<br>
+>优点：速度快（保守估计比第一种方法快五十倍以上）<br>
+>缺点：局限性较大，如果网站有验证码，就会很麻烦<br>
+
+```python
+import requests
+import re
+import json
+import pymysql
+
+url_login="http://xggl.hnie.edu.cn/website/login"
+
+headers = {
+    'Host':"xggl.hnie.edu.cn",
+    'Accept-Language':"zh-CN,zh;q=0.9,en;q=0.8",
+    'Accept-Encoding':"gzip, deflate",
+    'Content-Type':"application/x-www-form-urlencoded; charset=UTF-8",
+    'Connection':"keep-alive",
+    'Referer':"http://xggl.hnie.edu.cn/index",
+    'User-Agent':"Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Mobile Safari/537.36"
+}
+
+if __name__ == '__main__':
+    db = pymysql.connect(host='39.105.85.123',port=3306,user='yiban_raichu_top',password='jbsm33S5Rzy6pHPN',db='yiban_raichu_top')
+    cursor = db.cursor()
+    cursor.execute("use yiban_raichu_top;")
+    cursor.execute("select count(*) from user_information;")
+    num = cursor.fetchone()
+    cursor.execute("SELECT * FROM user_information")
+    user_data = cursor.fetchall()
+    for i in range(0,num[0]):
+        data = {
+            'username': user_data[i][1],
+            'password': user_data[i][2],
+            'action': "signin"
+        }
+        #登录
+        session_requests = requests.session()
+        login_res = session_requests.post(url_login,headers=headers, data=data)  
+
+        #获取上次打卡信息
+        last_url = "http://xggl.hnie.edu.cn/content/student/temp/zzdk/lastone"
+        last_res = session_requests.get(last_url,headers=headers)
+        last_text = last_res.content.decode("utf-8")
+        xian = ""
+        try:
+            xian = json.loads(last_text)['jzdXian']['dm']
+        except BaseException:
+            xian = ""
+        last_data = {
+            'operationType' : "Create",
+            'sfzx.dm' : json.loads(last_text)['sfzx'],
+            'jzdSheng.dm' : json.loads(last_text)['jzdSheng']['dm'],
+            'jzdShi.dm' : json.loads(last_text)['jzdShi']['dm'],
+            'jzdXian.dm' : xian,
+            'jzdDz' : json.loads(last_text)['jzdDz'],
+            'jzdDz2' : json.loads(last_text)['jzdDz2'],
+            'lxdh' : json.loads(last_text)['lxdh'],
+            'grInd' : json.loads(last_text)['grInd'],
+            'jcInd' : json.loads(last_text)['jcInd'],
+            'jtqk.dm' : json.loads(last_text)['jtqk']['dm'],
+            'jtqkXx' : json.loads(last_text)['jtqkXx'],
+            'brqk.dm' : json.loads(last_text)['brqk']['dm'],
+            'qwhbInd' : json.loads(last_text)['qwhbInd'],
+            'qwhbXx' : json.loads(last_text)['qwhbXx'],
+            'jchbrInd' : json.loads(last_text)['jchbrInd'],
+            'jchbrXx' : json.loads(last_text)['jchbrXx'],
+            'lxjlInd' : json.loads(last_text)['lxjlInd'],
+            'lxjlXx' : json.loads(last_text)['lxjlXx'],
+            'tw' : json.loads(last_text)['tw'],
+            'bz' : json.loads(last_text)['bz'],
+        }
+        #print(last_data)
+        #提交打卡
+        dk_url = "http://xggl.hnie.edu.cn/content/student/temp/zzdk" + re.findall("welcome(.*?)\"",login_res.content.decode("utf-8"))[0]
+        dk_res = session_requests.post(dk_url,headers=headers,data=last_data)
+        print(dk_res.content.decode("utf-8"))
 ```
