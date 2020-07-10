@@ -219,6 +219,7 @@ if __name__ == '__main__':
         last_res = session_requests.get(last_url,headers=headers)
         last_text = last_res.content.decode("utf-8")
         xian = ""
+        #因为有些地区没有县级，获取的时候会出错，所以这里要处理一下异常
         try:
             xian = json.loads(last_text)['jzdXian']['dm']
         except BaseException:
