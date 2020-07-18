@@ -196,6 +196,11 @@ headers = {
     'User-Agent':"Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Mobile Safari/537.36"
 }
 
+def md5(str):
+    m = hashlib.md5()
+    m.update(str.encode("utf8"))
+    return m.hexdigest()
+    
 if __name__ == '__main__':
     db = pymysql.connect(host='xxxxxxxxxxxxxx',port=3306,user='xxxxxxxxxxxxxx',password='xxxxxxxxxxxxxx',db='xxxxxxxxxxxxxx')
     cursor = db.cursor()
@@ -207,7 +212,7 @@ if __name__ == '__main__':
     for i in range(0,num[0]):
         data = {
             'username': user_data[i][1],
-            'password': user_data[i][2],
+            'password': md5(user_data[i][2]),
             'action': "signin"
         }
         #登录
