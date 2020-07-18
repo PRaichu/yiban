@@ -183,6 +183,7 @@ import requests
 import re
 import json
 import pymysql
+import hashlib
 
 url_login="http://xggl.hnie.edu.cn/website/login"
 
